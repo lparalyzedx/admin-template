@@ -7,10 +7,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
 {
-    use HasApiTokens, HasFactory, Notifiable;
+    use HasApiTokens, HasFactory, Notifiable, HasRoles;
 
     /**
      * The attributes that are mass assignable.
@@ -20,7 +21,9 @@ class User extends Authenticatable
     protected $fillable = [
         'name',
         'email',
+        'phone',
         'password',
+        'profile_image'
     ];
 
     /**
@@ -33,6 +36,10 @@ class User extends Authenticatable
         'remember_token',
     ];
 
+    protected $appends = [
+        'profile_img',
+    ];
+
     /**
      * The attributes that should be cast.
      *
@@ -42,4 +49,24 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
     ];
+
+
+    public function getProfileimgAttribute()
+    {
+        if ($this->profile_image) {
+            return asset('storage/' . $this->profile_image);
+        }
+
+        $fullname = explode(' ', $this->name);
+        $photo_name = '';
+        $count = count($fullname);
+
+        if ($count > 1) {
+            $photo_name = mb_substr($fullname[0], 0, 1) . mb_substr($fullname[1], 0, 1);
+        } else {
+            $photo_name = mb_substr($fullname[0], 0, 1);
+        }
+
+        return 'https://ui-avatars.com/api/?name=' . $photo_name . '&background=F2F2F2&color=7081B9&format=svg';
+    }
 }
